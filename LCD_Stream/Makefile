@@ -6,7 +6,7 @@ CDEFS = -DUSE_BCM2835_LIB
 CFLAGS = -O0 -g $(INCLUDE_DIRS) $(CDEFS)
 CXXFLAGS = -O0 -g $(INCLUDE_DIRS) $(CDEFS)
 
-LIBS = -lrt -lbcm2835 -lm
+LIBS = -lrt -lbcm2835 -lm -lpthread
 CPPLIBS = `pkg-config --libs opencv`
 
 all: capture
