@@ -4,8 +4,10 @@
 
 #include <signal.h>
 #include "camera_buffer.h"
+#include "display_buffer.h"
 
 extern volatile sig_atomic_t g_stop;
 extern CameraBuffer camera_buffer;
+extern DisplayBuffer display_buffer;
 
 #endif
