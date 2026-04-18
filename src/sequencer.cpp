@@ -59,7 +59,9 @@ static void service2_transform(const Mat& in, Mat& out)
 // Write to display buffer
 static void service3_write(const Mat& frame)
 {
-    // TODO
+    if (!frame.empty()) {
+        display_buffer.put(frame);
+    }
 }
 
 void* sequencer_thread(void* arg)
