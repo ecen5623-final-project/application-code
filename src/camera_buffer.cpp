@@ -1,8 +1,9 @@
 // src/camera_buffer.cpp
 #include "camera_buffer.h"
 
-CameraBuffer::CameraBuffer() : seq_(0)
+CameraBuffer::CameraBuffer()
 {
+    seq_ = 0;
     pthread_mutex_init(&mtx_, NULL);
 }
 

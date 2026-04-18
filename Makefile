@@ -10,7 +10,10 @@ CPPLIBS      = `pkg-config --libs opencv4 2>/dev/null || pkg-config --libs openc
 SRCS = src/main.cpp \
        src/realtime.cpp \
        src/camera_buffer.cpp \
-       src/camera_thread.cpp
+       src/camera_thread.cpp \
+       src/display_buffer.cpp \
+       src/hsv_config.cpp \
+       src/sequencer.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 

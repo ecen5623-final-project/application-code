@@ -1,6 +1,4 @@
-// src/camera_thread.cpp
-// Free-running V4L2 reader on core 1
-// Not a real-time service — just feeds camera_buffer as fast as camera delivers
+// camera_thread.cpp
 
 #include <unistd.h>
 #include <stdio.h>
@@ -26,7 +24,7 @@ void* camera_thread(void* arg)
 
     VideoCapture cap(DEVICE_PATH, CAP_V4L2);
     if (!cap.isOpened()) {
-        fprintf(stderr, "Camera: failed to open %s\n", DEVICE_PATH);
+        printf("camera failed to open\n");
         g_stop = 1;
         return NULL;
     }
@@ -42,7 +40,7 @@ void* camera_thread(void* arg)
     while (!g_stop) {
         cap >> frame;
         if (frame.empty()) {
-            fprintf(stderr, "Camera: empty frame\n");
+            printf("empty frame\n");
             continue;
         }
         camera_buffer.put(frame);
