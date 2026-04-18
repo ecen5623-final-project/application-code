@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <csignal>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "camera_buffer.h"
@@ -12,6 +13,7 @@
 using namespace cv;
 
 extern volatile sig_atomic_t g_stop;
+extern volatile sig_atomic_t g_camera_ready;
 extern CameraBuffer camera_buffer;
 extern DisplayBuffer display_buffer;
 
@@ -68,6 +70,12 @@ void* sequencer_thread(void* arg)
 {
     set_fifo_prio(90);
     pin_to_core(2);
+
+    // Wait for camera to be ready
+    while (!g_camera_ready && !g_stop) {
+        struct timespec ts = {0, 10000000L}; // 10ms
+        nanosleep(&ts, NULL);
+    }
 
     Mat frame_in, frame_out;
     struct timespec frame_start, frame_end;
