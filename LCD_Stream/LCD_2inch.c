@@ -82,7 +82,7 @@ void LCD_2IN_Init(void)
 	LCD_2IN_Reset();
 
 	LCD_2IN_Write_Command(0x36);
-	LCD_2IN_WriteData_Byte(0x00); 
+	LCD_2IN_WriteData_Byte(0x00);
 
 	LCD_2IN_Write_Command(0x3A); 
 	LCD_2IN_WriteData_Byte(0x05);

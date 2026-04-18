@@ -59,22 +59,19 @@ int main(int argc, char** argv)
         // Convert old IplImage* to cv::Mat
         Mat src = cvarrToMat(frame);
 
-        // Resize to LCD size
+        // Resize to LCD size and rotate
         Mat resized;
-        resize(src, resized, Size(LCD_2IN_WIDTH, LCD_2IN_HEIGHT));
+        resize(src, resized, Size(LCD_2IN_HEIGHT, LCD_2IN_WIDTH));
+        transpose(resized, resized);
+        flip(resized, resized, 0);   // counter-clockwise
 
-        // OpenCV is BGR
-        for (int y = 0; y < LCD_2IN_HEIGHT; y++)
+        for (int y = 0; y < resized.rows; y++)
         {
-            for (int x = 0; x < LCD_2IN_WIDTH; x++)
+            for (int x = 0; x < resized.cols; x++)
             {
                 Vec3b pixel = resized.at<Vec3b>(y, x);
-                unsigned char b = pixel[0];
-                unsigned char g = pixel[1];
-                unsigned char r = pixel[2];
-
-                uint16_t pix = rgb888_to_rgb565(r, g, b);
-                int idx = 2 * (y * LCD_2IN_WIDTH + x);
+                uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
+                int idx = 2 * (y * resized.cols + x);
                 lcd_buf[idx]     = (pix >> 8) & 0xFF;
                 lcd_buf[idx + 1] = pix & 0xFF;
             }

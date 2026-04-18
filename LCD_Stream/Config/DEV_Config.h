@@ -45,7 +45,7 @@
 #define LCD_DC   25
 #define LCD_BL   18
 
-
+#define SPI_HZ   40000000 // 50MHz a little unstable - 40MHz okay
 
 //LCD
 #define LCD_CS_0		DEV_Digital_Write(LCD_CS,0)
