@@ -86,5 +86,7 @@ void* lcd_thread(void* arg)
 	// Write frame to LCD
 	LCD_2IN_Display(lcd_buf.data());
     }
-	
+
+    //exit return statement
+    return (void *)0;
 }

@@ -84,6 +84,9 @@ int main(int argc, char** argv)
     struct sched_param main_param;
     int rc;
     int rt_max_prio = sched_get_priority_max(SCHED_FIFO);
+    
+    //setup syslog
+    openlog("colorblind_v1.0", LOG_CONS | LOG_ODELAY, LOG_USER);
 
     // Camera Init - using VideoCapture instead of CvCapture
     cap.open(0);
