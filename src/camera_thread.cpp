@@ -15,7 +15,7 @@ extern volatile sig_atomic_t g_stop;
 extern volatile sig_atomic_t g_camera_ready;
 extern CameraBuffer camera_buffer;
 
-#define DEVICE_PATH "/dev/video0"
+#define CAMERA_INDEX 0
 #define HRES 640
 #define VRES 480
 #define FPS  30
@@ -25,7 +25,7 @@ void* camera_thread(void* arg)
 {
     pin_to_core(1);
 
-    VideoCapture cap(DEVICE_PATH, CAP_V4L2);
+    VideoCapture cap(CAMERA_INDEX, CAP_V4L2);
     if (!cap.isOpened()) {
         printf("camera failed to open\n");
         g_stop = 1;
