@@ -81,6 +81,7 @@ int main(int argc, char** argv)
 
     pthread_join(t_cam, NULL);
     pthread_join(t_seq, NULL);
+    pthread_join(t_lcd, NULL);
 
     printf("Done.\n");
     closelog();
