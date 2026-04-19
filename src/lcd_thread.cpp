@@ -1,0 +1,78 @@
+/*********************
+ * 
+ * 
+ * 
+ */
+
+#include <unistd.h>
+#include <stdio.h>
+#include <csignal>
+#include <vector>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/videoio/videoio.hpp>
+#include "camera_buffer.h"
+#include "realtime.h"
+
+
+// Waveshare headers
+extern "C" {
+    #include "LCD_2inch.h"
+    #include "DEV_Config.h"
+}
+
+// RGB88 to 565 conversion -------------------------------------------------------------- May want to push this to the transform service?
+static inline uint16_t rgb888_to_rgb565(unsigned char r, unsigned char g, unsigned char b)
+{
+    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+}
+
+// LCD Initilization function
+void lcd_init(void)
+{
+	/* SPI Module Init */
+	if(DEV_ModuleInit() != 0){
+        DEV_ModuleExit();
+        exit(0);
+    }
+    
+    // LCD Init
+    LCD_2IN_Init();
+    LCD_2IN_Clear(WHITE);
+    LCD_SetBacklight(1023);
+}
+
+// LCD and SPI Stop
+void lcd_stop(void)
+{
+	LCD_2IN_Clear(BLACK);
+    LCD_SetBacklight(0);
+    DEV_ModuleExit();
+}
+
+// LCD Thread
+void* lcd_thread(void* arg)
+{
+	struct timespec start, stop;
+    Mat local;
+    
+    // Probably clone buffer to local???
+	
+	// Convert to RGB565
+	for (int y = 0; y < local.rows; y++)
+	{
+		for (int x = 0; x < local.cols; x++)
+		{
+			Vec3b pixel = local.at<Vec3b>(y, x);
+			uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
+			int idx = 2 * (y * local.cols + x);
+			lcd_buf[idx]     = (pix >> 8) & 0xFF;
+			lcd_buf[idx + 1] = pix & 0xFF;
+		}
+	}
+
+	// Write frame to LCD
+	LCD_2IN_Display(lcd_buf.data());
+	
+}
