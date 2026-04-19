@@ -1,5 +1,4 @@
-INCLUDE_DIRS = -Iinclude -I.src/Config -I.
-LIB_DIRS =
+INCLUDE_DIRS = -Iinclude -Isrc/Config -I.
 CC = gcc
 CXX = g++
 
@@ -15,10 +14,12 @@ SRCS = src/main.cpp \
        src/display_buffer.cpp \
        src/hsv_config.cpp \
        src/sequencer.cpp \
-	   src/LCD_2inch.c \
-	   src/Config/DEV_Config.c
+       src/LCD_2inch.c \
+       src/Config/DEV_Config.c \
+       src/lcd_thread.cpp
 
 OBJS = $(SRCS:.cpp=.o)
+OBJS := $(OBJS:.c=.o)
 
 all: capture
 
@@ -26,9 +27,12 @@ capture: $(OBJS)
 	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(CPPLIBS) $(LIBS)
 
 %.o: %.cpp
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f src/*.o capture
+	rm -f src/*.o src/Config/*.o capture
 
 .PHONY: all clean

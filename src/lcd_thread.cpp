@@ -12,15 +12,20 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/videoio/videoio.hpp>
-#include "camera_buffer.h"
+#include "display_buffer.h"
 #include "realtime.h"
-
 
 // Waveshare headers
 extern "C" {
     #include "LCD_2inch.h"
     #include "DEV_Config.h"
 }
+
+using namespace cv;
+using namespace std;
+
+extern DisplayBuffer display_buffer;
+volatile sig_atomic_t g_stop;
 
 // RGB88 to 565 conversion -------------------------------------------------------------- May want to push this to the transform service?
 static inline uint16_t rgb888_to_rgb565(unsigned char r, unsigned char g, unsigned char b)
@@ -31,10 +36,10 @@ static inline uint16_t rgb888_to_rgb565(unsigned char r, unsigned char g, unsign
 // LCD Initilization function
 void lcd_init(void)
 {
-	/* SPI Module Init */
-	if(DEV_ModuleInit() != 0){
-        DEV_ModuleExit();
-        exit(0);
+    /* SPI Module Init */
+    if(DEV_ModuleInit() != 0){
+	DEV_ModuleExit();
+	exit(0);
     }
     
     // LCD Init
@@ -46,7 +51,7 @@ void lcd_init(void)
 // LCD and SPI Stop
 void lcd_stop(void)
 {
-	LCD_2IN_Clear(BLACK);
+    LCD_2IN_Clear(BLACK);
     LCD_SetBacklight(0);
     DEV_ModuleExit();
 }
@@ -54,25 +59,32 @@ void lcd_stop(void)
 // LCD Thread
 void* lcd_thread(void* arg)
 {
-	struct timespec start, stop;
+    // struct timespec start, stop;
+    static vector<uint8_t> lcd_buf(LCD_2IN_WIDTH * LCD_2IN_HEIGHT * 2);
     Mat local;
-    
-    // Probably clone buffer to local???
+
+    while (!g_stop)
+    {
+	// Get from buffer:
+	display_buffer.put(local);
 	
+	if (local.empty()) continue;
+
 	// Convert to RGB565
 	for (int y = 0; y < local.rows; y++)
 	{
-		for (int x = 0; x < local.cols; x++)
-		{
-			Vec3b pixel = local.at<Vec3b>(y, x);
-			uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
-			int idx = 2 * (y * local.cols + x);
-			lcd_buf[idx]     = (pix >> 8) & 0xFF;
-			lcd_buf[idx + 1] = pix & 0xFF;
-		}
+	    for (int x = 0; x < local.cols; x++)
+	    {
+		Vec3b pixel = local.at<Vec3b>(y, x);
+		uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
+		int idx = 2 * (y * local.cols + x);
+		lcd_buf[idx] = (pix >> 8) & 0xFF;
+		lcd_buf[idx + 1] = pix & 0xFF;
+	    }
 	}
 
 	// Write frame to LCD
 	LCD_2IN_Display(lcd_buf.data());
+    }
 	
 }

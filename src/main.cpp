@@ -25,6 +25,7 @@ static void sigint_handler(int) { g_stop = 1; }
 // Thread entry points
 extern void* camera_thread(void*);
 extern void* sequencer_thread(void*);
+extern void* lcd_thread(void*);
 
 int main(int argc, char** argv)
 {
@@ -36,10 +37,11 @@ int main(int argc, char** argv)
     signal(SIGINT, sigint_handler);
     hsv_init();
 
-    pthread_t t_cam, t_seq;
+    pthread_t t_cam, t_seq, t_lcd;
 
     pthread_create(&t_cam, NULL, camera_thread, NULL);
     pthread_create(&t_seq, NULL, sequencer_thread, NULL);
+    pthread_create(&t_lcd, NULL, lcd_thread, NULL);
 
     cv::Mat frame;
     unsigned long last_seq = 0;
