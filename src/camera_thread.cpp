@@ -44,11 +44,11 @@ void* camera_thread(void* arg)
         return NULL;
     }
 
-    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M','J','P','G'));
+    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M','J','P','G')); // warning message from this line with some versions
     cap.set(CAP_PROP_FRAME_WIDTH,  HRES);
     cap.set(CAP_PROP_FRAME_HEIGHT, VRES);
     cap.set(CAP_PROP_FPS,          FPS);
-    cap.set(CAP_PROP_BUFFERSIZE,   2);
+    cap.set(CAP_PROP_BUFFERSIZE,   2); // warning message from this line with some versions
 
     Mat frame;
     int empty_count = 0;

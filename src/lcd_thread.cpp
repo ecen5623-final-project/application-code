@@ -15,6 +15,8 @@
 #include "display_buffer.h"
 #include "realtime.h"
 
+#define TIMEOUT 75000000
+
 // Waveshare headers
 extern "C" {
     #include "LCD_2inch.h"
@@ -25,7 +27,7 @@ using namespace cv;
 using namespace std;
 
 extern DisplayBuffer display_buffer;
-volatile sig_atomic_t g_stop;
+extern volatile sig_atomic_t g_stop;
 
 // RGB88 to 565 conversion -------------------------------------------------------------- May want to push this to the transform service?
 static inline uint16_t rgb888_to_rgb565(unsigned char r, unsigned char g, unsigned char b)
@@ -62,13 +64,19 @@ void* lcd_thread(void* arg)
     // struct timespec start, stop;
     static vector<uint8_t> lcd_buf(LCD_2IN_WIDTH * LCD_2IN_HEIGHT * 2);
     Mat local;
+    unsigned long last_seq = 0;
 
     while (!g_stop)
     {
 	// Get from buffer:
-	display_buffer.put(local);
+	if (!display_buffer.get(local, last_seq, TIMEOUT)) continue;
+	    
+	last_seq++;
 	
-	if (local.empty()) continue;
+	if (local.empty()) {
+	    //~ printf("No image for LCD");
+	    continue;
+	}
 
 	// Convert to RGB565
 	for (int y = 0; y < local.rows; y++)
@@ -87,6 +95,7 @@ void* lcd_thread(void* arg)
 	LCD_2IN_Display(lcd_buf.data());
     }
 
-    //exit return statement
-    return (void *)0;
+    
+    lcd_stop();
+    return NULL;	
 }
