@@ -65,18 +65,17 @@ void* lcd_thread(void* arg)
     static vector<uint8_t> lcd_buf(LCD_2IN_WIDTH * LCD_2IN_HEIGHT * 2);
     Mat local;
     unsigned long last_seq = 0;
+    
+    lcd_init();
 
     while (!g_stop)
     {
 	// Get from buffer:
 	if (!display_buffer.get(local, last_seq, TIMEOUT)) continue;
+	if (local.empty()) continue;
 	    
 	last_seq++;
 	
-	if (local.empty()) {
-	    //~ printf("No image for LCD");
-	    continue;
-	}
 
 	// Convert to RGB565
 	for (int y = 0; y < local.rows; y++)
