@@ -9,6 +9,7 @@
 #include <opencv2/videoio/videoio.hpp>
 #include "camera_buffer.h"
 #include "realtime.h"
+#include "LCD_2inch.h"
 
 using namespace cv;
 
@@ -17,8 +18,8 @@ extern volatile sig_atomic_t g_camera_ready;
 extern CameraBuffer camera_buffer;
 
 #define CAMERA_INDEX 0
-#define HRES 640
-#define VRES 480
+#define HRES LCD_2IN_WIDTH
+#define VRES LCD_2IN_HEIGHT
 #define FPS  30
 #define WARMUP_FRAMES 30
 
