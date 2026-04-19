@@ -61,7 +61,8 @@ void lcd_stop(void)
 // LCD Thread
 void* lcd_thread(void* arg)
 {
-    // struct timespec start, stop;
+    pin_to_core(3);
+    set_fifo_prio(70);
     static vector<uint8_t> lcd_buf(LCD_2IN_WIDTH * LCD_2IN_HEIGHT * 2);
     Mat frame_lcd;
     unsigned long last_seq = 0;
