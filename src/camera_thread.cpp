@@ -18,8 +18,8 @@ extern volatile sig_atomic_t g_camera_ready;
 extern CameraBuffer camera_buffer;
 
 #define CAMERA_INDEX 0
-#define HRES LCD_2IN_WIDTH
-#define VRES LCD_2IN_HEIGHT
+#define HRES LCD_2IN_WIDTH   // max 1280
+#define VRES LCD_2IN_HEIGHT  // max 720
 #define FPS  30
 #define WARMUP_FRAMES 30
 
