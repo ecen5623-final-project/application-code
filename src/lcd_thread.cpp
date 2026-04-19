@@ -63,35 +63,34 @@ void* lcd_thread(void* arg)
 {
     // struct timespec start, stop;
     static vector<uint8_t> lcd_buf(LCD_2IN_WIDTH * LCD_2IN_HEIGHT * 2);
-    Mat local;
+    Mat frame_lcd;
     unsigned long last_seq = 0;
     
     lcd_init();
 
     while (!g_stop)
     {
-	// Get from buffer:
-	if (!display_buffer.get(local, last_seq, TIMEOUT)) continue;
-	if (local.empty()) continue;
-	    
-	last_seq++;
-	
+		// Get from buffer:
+		if (!display_buffer.get(frame_lcd, last_seq, TIMEOUT)) continue;
+		if (frame_lcd.empty()) continue;
+			
+		last_seq++;
 
-	// Convert to RGB565
-	for (int y = 0; y < local.rows; y++)
-	{
-	    for (int x = 0; x < local.cols; x++)
-	    {
-		Vec3b pixel = local.at<Vec3b>(y, x);
-		uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
-		int idx = 2 * (y * local.cols + x);
-		lcd_buf[idx] = (pix >> 8) & 0xFF;
-		lcd_buf[idx + 1] = pix & 0xFF;
-	    }
-	}
+		// Convert to RGB565
+		for (int y = 0; y < frame_lcd.rows; y++)
+		{
+			for (int x = 0; x < frame_lcd.cols; x++)
+			{
+				Vec3b pixel = frame_lcd.at<Vec3b>(y, x);
+				uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
+				int idx = 2 * (y * frame_lcd.cols + x);
+				lcd_buf[idx] = (pix >> 8) & 0xFF;
+				lcd_buf[idx + 1] = pix & 0xFF;
+			}
+		}
 
-	// Write frame to LCD
-	LCD_2IN_Display(lcd_buf.data());
+		// Write frame to LCD
+		LCD_2IN_Display(lcd_buf.data());
     }
 
     
