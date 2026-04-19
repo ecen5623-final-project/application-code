@@ -12,6 +12,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "shared.h"
 #include "hsv_config.h"
+#include "realtime.h"
 
 // Global shared state
 CameraBuffer camera_buffer;
@@ -34,6 +35,8 @@ int main(int argc, char** argv)
     openlog("capture_v1", LOG_PID | LOG_NDELAY, LOG_USER);
 
     mlockall(MCL_CURRENT | MCL_FUTURE);
+    pin_to_core(0);
+    set_fifo_prio(50);
     signal(SIGINT, sigint_handler);
     hsv_init();
 
