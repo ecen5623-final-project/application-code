@@ -26,6 +26,7 @@ extern CameraBuffer camera_buffer;
 void* camera_thread(void* arg)
 {
     pin_to_core(1);
+    set_fifo_prio(80);
 
     /*// Suppress libjpeg warnings about corrupt MJPEG data
     //by forcing all "STDERR" messages to the devnull file
