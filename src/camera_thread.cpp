@@ -44,11 +44,18 @@ void* camera_thread(void* arg)
         return NULL;
     }
 
-    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M','J','P','G')); // warning message from this line with some versions
+    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('Y','U','Y','V'));
     cap.set(CAP_PROP_FRAME_WIDTH,  HRES);
     cap.set(CAP_PROP_FRAME_HEIGHT, VRES);
     cap.set(CAP_PROP_FPS,          FPS);
-    cap.set(CAP_PROP_BUFFERSIZE,   2); // warning message from this line with some versions
+    cap.set(CAP_PROP_BUFFERSIZE,   1);
+
+    // Manual exposure — OpenCV maps CAP_PROP_AUTO_EXPOSURE to the V4L2 menu:
+    //   1 = Manual Mode, 3 = Aperture Priority. Manual locks the exposure time
+    //   so the sensor can't stretch a frame interval past the FPS period.
+    // CAP_PROP_EXPOSURE is in 100-µs units on UVC; 50 => 5 ms.
+    cap.set(CAP_PROP_AUTO_EXPOSURE, 1);
+    cap.set(CAP_PROP_EXPOSURE,      50);
 
     Mat frame;
     int empty_count = 0;
