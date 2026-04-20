@@ -214,6 +214,9 @@ UBYTE DEV_ModuleInit(void)
             return -1;
         }
     }
+    // SPI clock: 40 MHz. Header comment documents 50 MHz as a little
+    // unstable and 40 MHz as OK on this panel. If tearing/garbage appears,
+    // drop to 32 MHz.
     SPI_Handle = lgSpiOpen(0, 0, 40000000, 0);
     DEV_GPIO_Init();
     t1 = lgThreadStart(BL_PWM, "thread 1");
