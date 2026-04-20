@@ -67,23 +67,27 @@ static void* service2_thread(void* arg)
         sem_wait(&sem_s2);
         if (g_stop) break;
 
+        // Reuse buffers across frames: OpenCV only reallocates if size/type
+        // changes, so these stabilize after the first frame.
+        static Mat hsv, mask, gray, out;
+
         Mat in = shared_frame_in;
-        Mat out;
         if (!in.empty()) {
             hsv_lock();
             Scalar lo = hsv_lo;
             Scalar hi = hsv_hi;
             hsv_unlock();
 
-            Mat hsv, mask, gray, gray_bgr;
             cvtColor(in, hsv, COLOR_BGR2HSV);
             inRange(hsv, lo, hi, mask);
 
+            // Desaturated 3-channel backdrop written directly into `out`,
+            // then colored pixels overlaid where mask is set.
             cvtColor(in, gray, COLOR_BGR2GRAY);
-            cvtColor(gray, gray_bgr, COLOR_GRAY2BGR);
-
-            gray_bgr.copyTo(out);
+            cvtColor(gray, out, COLOR_GRAY2BGR);
             in.copyTo(out, mask);
+        } else {
+            out = Mat();
         }
 
         shared_frame_out = out;
