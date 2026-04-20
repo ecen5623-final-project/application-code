@@ -214,7 +214,7 @@ UBYTE DEV_ModuleInit(void)
             return -1;
         }
     }
-    SPI_Handle = lgSpiOpen(0, 0, 25000000, 0);
+    SPI_Handle = lgSpiOpen(0, 0, 40000000, 0);
     DEV_GPIO_Init();
     t1 = lgThreadStart(BL_PWM, "thread 1");
 	
