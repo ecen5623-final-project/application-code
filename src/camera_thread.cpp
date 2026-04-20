@@ -10,6 +10,7 @@
 #include "camera_buffer.h"
 #include "realtime.h"
 #include "LCD_2inch.h"
+#include <time.h> //for logging timestamps of WCET
 
 using namespace cv;
 
@@ -27,6 +28,10 @@ void* camera_thread(void* arg)
 {
     pin_to_core(1);
     set_fifo_prio(80);
+    
+    struct timespec frame_start, frame_end;
+    clock_gettime(CLOCK_MONOTONIC, &frame_start);
+    syslog(LOG_DEBUG, "start camera_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
 
     // Suppress libjpeg warnings about corrupt MJPEG data
     //by forcing all "STDERR" messages to the devnull file
@@ -79,6 +84,8 @@ void* camera_thread(void* arg)
         }
         empty_count = 0;
         camera_buffer.put(frame);
+        clock_gettime(CLOCK_MONOTONIC, &frame_end);
+        syslog(LOG_DEBUG, "int camera_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
     }
 
     cap.release();
