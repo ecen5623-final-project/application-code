@@ -84,6 +84,7 @@ int main(int argc, char** argv)
     pthread_join(t_lcd, NULL);
 
     printf("Done.\n");
+    syslog(LOG_INFO, "Done.\n");
     closelog();
     return 0;
 }
