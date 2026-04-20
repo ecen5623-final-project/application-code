@@ -27,6 +27,7 @@ void* camera_thread(void* arg)
     pin_to_core(1);
 
     // Suppress libjpeg warnings about corrupt MJPEG data
+    //by forcing all "STDERR" messages to the devnull file
     int devnull = open("/dev/null", O_WRONLY);
     if (devnull >= 0) {
         dup2(devnull, STDERR_FILENO);
