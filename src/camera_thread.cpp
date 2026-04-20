@@ -28,7 +28,7 @@ void* camera_thread(void* arg)
     pin_to_core(1);
     set_fifo_prio(80);
 
-    /*// Suppress libjpeg warnings about corrupt MJPEG data
+    // Suppress libjpeg warnings about corrupt MJPEG data
     //by forcing all "STDERR" messages to the devnull file
     int devnull = open("/dev/null", O_WRONLY);
     if (devnull >= 0) {
@@ -36,9 +36,7 @@ void* camera_thread(void* arg)
         close(devnull);
     }
 
-    VideoCapture cap(CAMERA_INDEX, CAP_V4L2);*/
-
-    VideoCapture cap(CAMERA_INDEX);
+    VideoCapture cap(CAMERA_INDEX, CAP_V4L2);
 
     if (!cap.isOpened()) {
         syslog(LOG_ERR, "camera failed to open");
