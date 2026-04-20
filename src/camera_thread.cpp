@@ -17,8 +17,8 @@ extern volatile sig_atomic_t g_camera_ready;
 extern CameraBuffer camera_buffer;
 
 #define CAMERA_INDEX 0
-#define HRES 640
-#define VRES 480
+#define HRES 320
+#define VRES 240
 #define FPS  30
 #define WARMUP_FRAMES 30
 
@@ -41,11 +41,18 @@ void* camera_thread(void* arg)
         return NULL;
     }
 
-    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M','J','P','G'));
+    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('Y','U','Y','V'));
     cap.set(CAP_PROP_FRAME_WIDTH,  HRES);
     cap.set(CAP_PROP_FRAME_HEIGHT, VRES);
     cap.set(CAP_PROP_FPS,          FPS);
-    cap.set(CAP_PROP_BUFFERSIZE,   2);
+    cap.set(CAP_PROP_BUFFERSIZE,   1);
+
+    // Manual exposure — OpenCV maps CAP_PROP_AUTO_EXPOSURE to the V4L2 menu:
+    //   1 = Manual Mode, 3 = Aperture Priority. Manual locks the exposure time
+    //   so the sensor can't stretch a frame interval past the FPS period.
+    // CAP_PROP_EXPOSURE is in 100-µs units on UVC; 50 => 5 ms.
+    cap.set(CAP_PROP_AUTO_EXPOSURE, 1);
+    cap.set(CAP_PROP_EXPOSURE,      50);
 
     Mat frame;
     int empty_count = 0;
