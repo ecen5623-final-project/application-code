@@ -1,6 +1,7 @@
 // camera_thread.cpp
 
 #include <unistd.h>
+#include <fcntl.h>
 #include <syslog.h>
 #include <csignal>
 #include <opencv2/core/core.hpp>
@@ -24,6 +25,13 @@ extern CameraBuffer camera_buffer;
 void* camera_thread(void* arg)
 {
     pin_to_core(1);
+
+    // Suppress libjpeg warnings about corrupt MJPEG data
+    int devnull = open("/dev/null", O_WRONLY);
+    if (devnull >= 0) {
+        dup2(devnull, STDERR_FILENO);
+        close(devnull);
+    }
 
     VideoCapture cap(CAMERA_INDEX, CAP_V4L2);
     if (!cap.isOpened()) {
