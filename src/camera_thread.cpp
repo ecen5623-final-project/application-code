@@ -1,7 +1,7 @@
 // camera_thread.cpp
 
 #include <unistd.h>
-#include <stdio.h>
+#include <syslog.h>
 #include <csignal>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -27,7 +27,7 @@ void* camera_thread(void* arg)
 
     VideoCapture cap(CAMERA_INDEX, CAP_V4L2);
     if (!cap.isOpened()) {
-        printf("camera failed to open\n");
+        syslog(LOG_ERR, "camera failed to open");
         g_stop = 1;
         return NULL;
     }
@@ -39,21 +39,26 @@ void* camera_thread(void* arg)
     cap.set(CAP_PROP_BUFFERSIZE,   2);
 
     Mat frame;
+    int empty_count = 0;
 
-    // Warmup: capture a few frames to initialize V4L2 buffers
-    printf("Camera warmup...\n");
+    syslog(LOG_INFO, "Camera warmup...");
     for (int i = 0; i < WARMUP_FRAMES && !g_stop; i++) {
         cap >> frame;
     }
-    printf("Camera ready.\n");
+    syslog(LOG_INFO, "Camera ready");
     g_camera_ready = 1;
 
     while (!g_stop) {
         cap >> frame;
         if (frame.empty()) {
-            printf("empty frame\n");
+            if (++empty_count > 10) {
+                syslog(LOG_ERR, "Camera failed after %d empty frames", empty_count);
+                g_stop = 1;
+                break;
+            }
             continue;
         }
+        empty_count = 0;
         camera_buffer.put(frame);
     }
 

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <syslog.h>
 #include <sys/mman.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -29,6 +30,8 @@ int main(int argc, char** argv)
 {
     bool headless = (argc > 1 && strcmp(argv[1], "--headless") == 0);
 
+    openlog("capture", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_USER);
+
     mlockall(MCL_CURRENT | MCL_FUTURE);
     signal(SIGINT, sigint_handler);
     hsv_init();
@@ -43,6 +46,7 @@ int main(int argc, char** argv)
 
     if (headless) {
         printf("Running in headless mode. Press Ctrl+C to quit.\n");
+        fflush(stdout);
         while (!g_stop) {
             if (display_buffer.get(frame, last_seq, 100000000L)) {
                 last_seq++;
@@ -74,5 +78,6 @@ int main(int argc, char** argv)
     pthread_join(t_seq, NULL);
 
     printf("Done.\n");
+    closelog();
     return 0;
 }

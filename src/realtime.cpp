@@ -1,7 +1,7 @@
 // src/realtime.cpp
 #include <pthread.h>
 #include <sched.h>
-#include <stdio.h>
+#include <syslog.h>
 #include <string.h>
 #include <errno.h>
 #include "realtime.h"
@@ -13,7 +13,7 @@ void set_fifo_prio(int prio)
     sp.sched_priority = prio;
     int rc = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp);
     if (rc != 0)
-        fprintf(stderr, "set_fifo_prio(%d) failed: %s\n", prio, strerror(rc));
+        syslog(LOG_ERR, "set_fifo_prio(%d) failed: %s", prio, strerror(rc));
 }
 
 void pin_to_core(int core)
@@ -23,5 +23,5 @@ void pin_to_core(int core)
     CPU_SET(core, &set);
     int rc = pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
     if (rc != 0)
-        fprintf(stderr, "pin_to_core(%d) failed: %s\n", core, strerror(rc));
+        syslog(LOG_ERR, "pin_to_core(%d) failed: %s", core, strerror(rc));
 }
