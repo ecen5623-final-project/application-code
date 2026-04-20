@@ -15,6 +15,9 @@
 #include "display_buffer.h"
 #include "realtime.h"
 
+#include <time.h> //for logging timestamps of WCET
+#include <syslog.h>
+
 #define TIMEOUT 75000000
 
 // Waveshare headers
@@ -67,31 +70,38 @@ void* lcd_thread(void* arg)
     Mat frame_lcd;
     unsigned long last_seq = 0;
     
+    struct timespec frame_start, frame_end;
+    clock_gettime(CLOCK_MONOTONIC, &frame_start);
+    syslog(LOG_DEBUG, "start lcd_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
+    
     lcd_init();
 
     while (!g_stop)
     {
-		// Get from buffer:
-		if (!display_buffer.get(frame_lcd, last_seq, TIMEOUT)) continue;
-		if (frame_lcd.empty()) continue;
+	// Get from buffer:
+	if (!display_buffer.get(frame_lcd, last_seq, TIMEOUT)) continue;
+	if (frame_lcd.empty()) continue;
 			
-		last_seq++;
+	last_seq++;
 
-		// Convert to RGB565
-		for (int y = 0; y < frame_lcd.rows; y++)
-		{
-			for (int x = 0; x < frame_lcd.cols; x++)
-			{
-				Vec3b pixel = frame_lcd.at<Vec3b>(y, x);
-				uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
-				int idx = 2 * (y * frame_lcd.cols + x);
-				lcd_buf[idx] = (pix >> 8) & 0xFF;
-				lcd_buf[idx + 1] = pix & 0xFF;
-			}
-		}
+	// Convert to RGB565
+	for (int y = 0; y < frame_lcd.rows; y++)
+	{
+	    for (int x = 0; x < frame_lcd.cols; x++)
+	    {
+		Vec3b pixel = frame_lcd.at<Vec3b>(y, x);
+		uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
+		int idx = 2 * (y * frame_lcd.cols + x);
+		lcd_buf[idx] = (pix >> 8) & 0xFF;
+		lcd_buf[idx + 1] = pix & 0xFF;
+	    }
+	}
 
-		// Write frame to LCD
-		LCD_2IN_Display(lcd_buf.data());
+	// Write frame to LCD
+	LCD_2IN_Display(lcd_buf.data());
+		
+	clock_gettime(CLOCK_MONOTONIC, &frame_end);
+	syslog(LOG_DEBUG, "int lcd_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
     }
 
     
