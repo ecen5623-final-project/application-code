@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 {
     bool headless = (argc > 1 && strcmp(argv[1], "--headless") == 0);
 
-    openlog("capture", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_USER);
+    openlog("capture", LOG_PID | LOG_NDELAY, LOG_USER);
 
     mlockall(MCL_CURRENT | MCL_FUTURE);
     signal(SIGINT, sigint_handler);
