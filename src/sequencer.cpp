@@ -115,7 +115,8 @@ static void* service3_thread(void* arg)
 
 void* sequencer_thread(void* arg)
 {
-    set_fifo_prio(90);
+    int rt_max_prio = sched_get_priority_max(SCHED_FIFO);
+    set_fifo_prio(rt_max_prio);
     pin_to_core(2);
 
     sem_init(&sem_s1, 0, 0);
