@@ -26,12 +26,6 @@ static sem_t sem_s1, sem_s2, sem_s3, sem_done;
 static Mat shared_frame_in;
 static Mat shared_frame_out;
 
-static long timespec_diff_ns(struct timespec* start, struct timespec* end)
-{
-    return (end->tv_sec - start->tv_sec) * 1000000000L +
-           (end->tv_nsec - start->tv_nsec);
-}
-
 // Service 1: Read from camera buffer
 static void* service1_thread(void* arg)
 {
@@ -143,6 +137,9 @@ void* sequencer_thread(void* arg)
     struct timespec next_release;
     clock_gettime(CLOCK_MONOTONIC, &next_release);
 
+    clock_gettime(CLOCK_MONOTONIC, &frame_start);
+    syslog(LOG_DEBUG, "start sequencer_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
+
     while (!g_stop) {
         clock_gettime(CLOCK_MONOTONIC, &frame_start);
 
@@ -153,12 +150,7 @@ void* sequencer_thread(void* arg)
         sem_wait(&sem_done);
 
         clock_gettime(CLOCK_MONOTONIC, &frame_end);
-
-        long elapsed_ns = timespec_diff_ns(&frame_start, &frame_end);
-        if (elapsed_ns > T_NS)
-            syslog(LOG_WARNING, "Deadline MISSED: %.2f ms", elapsed_ns / 1000000.0);
-        else
-            syslog(LOG_INFO, "Deadline met: %.2f ms", elapsed_ns / 1000000.0);
+        syslog(LOG_DEBUG, "int sequencer_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
 
         next_release.tv_nsec += T_NS;
         while (next_release.tv_nsec >= 1000000000L) {
