@@ -267,12 +267,25 @@ parameter	:
 ******************************************************************************/
 void LCD_2IN_Display(UBYTE *image)
 {
-	UWORD i;
+	// Hold CS low across the whole frame and push as few chunks as we can.
+	// spidev caps a single transfer at 4096 bytes by default, so that's our
+	// chunk size. For a 240x320x2 frame that's 38 SPI calls instead of the
+	// 320 per-row calls the original driver did.
+	const uint32_t total = (uint32_t)LCD_2IN_WIDTH * LCD_2IN_HEIGHT * 2;
+	const uint32_t CHUNK = 4096;
+
 	LCD_2IN_SetWindow(0, 0, LCD_2IN_WIDTH, LCD_2IN_HEIGHT);
 	DEV_Digital_Write(LCD_DC, 1);
-	for(i = 0; i < LCD_2IN_HEIGHT; i++){
-		DEV_SPI_Write_nByte((UBYTE *)image+LCD_2IN_WIDTH*2*i,LCD_2IN_WIDTH*2);
+	DEV_Digital_Write(LCD_CS, 0);
+
+	uint32_t sent = 0;
+	while (sent < total) {
+		uint32_t n = (total - sent) < CHUNK ? (total - sent) : CHUNK;
+		DEV_SPI_Write_nByte(image + sent, n);
+		sent += n;
 	}
+
+	DEV_Digital_Write(LCD_CS, 1);
 }
 
 /******************************************************************************

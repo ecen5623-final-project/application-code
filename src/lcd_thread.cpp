@@ -6,6 +6,8 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <csignal>
 #include <vector>
 #include <opencv2/core/core.hpp>
@@ -28,12 +30,6 @@ using namespace std;
 
 extern DisplayBuffer display_buffer;
 extern volatile sig_atomic_t g_stop;
-
-// RGB88 to 565 conversion -------------------------------------------------------------- May want to push this to the transform service?
-static inline uint16_t rgb888_to_rgb565(unsigned char r, unsigned char g, unsigned char b)
-{
-    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
-}
 
 // LCD Initilization function
 void lcd_init(void)
@@ -77,17 +73,27 @@ void* lcd_thread(void* arg)
 			
 		last_seq++;
 
-		// Convert to RGB565
-		for (int y = 0; y < frame_lcd.rows; y++)
-		{
-			for (int x = 0; x < frame_lcd.cols; x++)
-			{
-				Vec3b pixel = frame_lcd.at<Vec3b>(y, x);
-				uint16_t pix = rgb888_to_rgb565(pixel[2], pixel[1], pixel[0]);
-				int idx = 2 * (y * frame_lcd.cols + x);
-				lcd_buf[idx] = (pix >> 8) & 0xFF;
-				lcd_buf[idx + 1] = pix & 0xFF;
-			}
+		// Pack BGR888 -> RGB565 with OpenCV's cvtColor. It's SIMD-vectorized,
+		// so it runs an order of magnitude faster than the per-pixel
+		// Mat::at<Vec3b> loop this replaces, which was the main S3 bottleneck.
+		// The ST7789 expects big-endian pixels over SPI but cvtColor packs
+		// them little-endian, hence the byte-swap loop below.
+		//
+		// Things to check on hardware:
+		//   - If reds and blues look swapped, try COLOR_BGR2RGB565 instead.
+		//   - The byte-swap loop can go away if we send RAMCTRL (cmd 0xB0)
+		//     during init to put the panel in little-endian mode. Left as
+		//     a follow-up since it needs datasheet verification for this
+		//     exact Waveshare board.
+		static Mat rgb565;
+		cvtColor(frame_lcd, rgb565, COLOR_BGR2BGR565);
+
+		const size_t nbytes = (size_t)rgb565.rows * rgb565.cols * 2;
+		const uint8_t* src = rgb565.ptr<uint8_t>(0);
+		uint8_t* dst = lcd_buf.data();
+		for (size_t i = 0; i < nbytes; i += 2) {
+			dst[i]     = src[i + 1];
+			dst[i + 1] = src[i];
 		}
 
 		// Write frame to LCD
