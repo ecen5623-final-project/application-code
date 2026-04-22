@@ -33,6 +33,10 @@ static void* service1_thread(void* arg)
     set_fifo_prio(rt_max_prio - 1);
     pin_to_core(2);
 
+    struct timespec frame_start, frame_end;
+    clock_gettime(CLOCK_MONOTONIC, &frame_start);
+    syslog(LOG_DEBUG, "start service1_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
+
     while (!g_stop) {
         sem_wait(&sem_s1);
         if (g_stop) break;
@@ -45,6 +49,9 @@ static void* service1_thread(void* arg)
             shared_frame_in = Mat();
         }
 
+        clock_gettime(CLOCK_MONOTONIC, &frame_end);
+        syslog(LOG_DEBUG, "int service1_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
+
         sem_post(&sem_s2);
     }
     return NULL;
@@ -56,6 +63,10 @@ static void* service2_thread(void* arg)
     int rt_max_prio = sched_get_priority_max(SCHED_FIFO);
     set_fifo_prio(rt_max_prio - 2);
     pin_to_core(2);
+
+    struct timespec frame_start, frame_end;
+    clock_gettime(CLOCK_MONOTONIC, &frame_start);
+    syslog(LOG_DEBUG, "start service2_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
 
     while (!g_stop) {
         sem_wait(&sem_s2);
@@ -85,6 +96,10 @@ static void* service2_thread(void* arg)
         }
 
         shared_frame_out = out;
+
+        clock_gettime(CLOCK_MONOTONIC, &frame_end);
+        syslog(LOG_DEBUG, "int service2_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
+
         sem_post(&sem_s3);
     }
     return NULL;
@@ -97,6 +112,10 @@ static void* service3_thread(void* arg)
     set_fifo_prio(rt_max_prio - 3);
     pin_to_core(2);
 
+    struct timespec frame_start, frame_end;
+    clock_gettime(CLOCK_MONOTONIC, &frame_start);
+    syslog(LOG_DEBUG, "start service3_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
+
     while (!g_stop) {
         sem_wait(&sem_s3);
         if (g_stop) break;
@@ -105,6 +124,9 @@ static void* service3_thread(void* arg)
         if (!frame.empty()) {
             display_buffer.put(frame);
         }
+
+        clock_gettime(CLOCK_MONOTONIC, &frame_end);
+        syslog(LOG_DEBUG, "int service3_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
 
         sem_post(&sem_done);
     }
