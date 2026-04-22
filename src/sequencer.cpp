@@ -34,12 +34,12 @@ static void* service1_thread(void* arg)
     pin_to_core(2);
 
     struct timespec frame_start, frame_end;
-    clock_gettime(CLOCK_MONOTONIC, &frame_start);
-    syslog(LOG_DEBUG, "start service1_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
 
     while (!g_stop) {
         sem_wait(&sem_s1);
         if (g_stop) break;
+
+        clock_gettime(CLOCK_MONOTONIC, &frame_start);
 
         unsigned long seq;
         Mat frame;
@@ -50,7 +50,7 @@ static void* service1_thread(void* arg)
         }
 
         clock_gettime(CLOCK_MONOTONIC, &frame_end);
-        syslog(LOG_DEBUG, "int service1_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
+        syslog(LOG_DEBUG, ",S1,%.3f,ms", delta_t_ms(frame_start, frame_end));
 
         sem_post(&sem_s2);
     }
@@ -65,12 +65,12 @@ static void* service2_thread(void* arg)
     pin_to_core(2);
 
     struct timespec frame_start, frame_end;
-    clock_gettime(CLOCK_MONOTONIC, &frame_start);
-    syslog(LOG_DEBUG, "start service2_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
 
     while (!g_stop) {
         sem_wait(&sem_s2);
         if (g_stop) break;
+
+        clock_gettime(CLOCK_MONOTONIC, &frame_start);
 
         // Reuse buffers across frames: OpenCV only reallocates if size/type
         // changes, so these stabilize after the first frame.
@@ -98,7 +98,7 @@ static void* service2_thread(void* arg)
         shared_frame_out = out;
 
         clock_gettime(CLOCK_MONOTONIC, &frame_end);
-        syslog(LOG_DEBUG, "int service2_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
+        syslog(LOG_DEBUG, ",S2,%.3f,ms", delta_t_ms(frame_start, frame_end));
 
         sem_post(&sem_s3);
     }
@@ -113,12 +113,12 @@ static void* service3_thread(void* arg)
     pin_to_core(2);
 
     struct timespec frame_start, frame_end;
-    clock_gettime(CLOCK_MONOTONIC, &frame_start);
-    syslog(LOG_DEBUG, "start service3_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
 
     while (!g_stop) {
         sem_wait(&sem_s3);
         if (g_stop) break;
+
+        clock_gettime(CLOCK_MONOTONIC, &frame_start);
 
         Mat frame = shared_frame_out;
         if (!frame.empty()) {
@@ -126,7 +126,7 @@ static void* service3_thread(void* arg)
         }
 
         clock_gettime(CLOCK_MONOTONIC, &frame_end);
-        syslog(LOG_DEBUG, "int service3_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
+        syslog(LOG_DEBUG, ",S3,%.3f,ms", delta_t_ms(frame_start, frame_end));
 
         sem_post(&sem_done);
     }
@@ -159,9 +159,6 @@ void* sequencer_thread(void* arg)
     struct timespec next_release;
     clock_gettime(CLOCK_MONOTONIC, &next_release);
 
-    clock_gettime(CLOCK_MONOTONIC, &frame_start);
-    syslog(LOG_DEBUG, "start sequencer_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
-
     while (!g_stop) {
         clock_gettime(CLOCK_MONOTONIC, &frame_start);
 
@@ -172,7 +169,7 @@ void* sequencer_thread(void* arg)
         sem_wait(&sem_done);
 
         clock_gettime(CLOCK_MONOTONIC, &frame_end);
-        syslog(LOG_DEBUG, "int sequencer_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
+        syslog(LOG_DEBUG, ",sequencer,%.3f,ms", delta_t_ms(frame_start, frame_end));
 
         next_release.tv_nsec += T_NS;
         while (next_release.tv_nsec >= 1000000000L) {

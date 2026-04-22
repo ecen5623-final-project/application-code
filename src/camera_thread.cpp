@@ -30,8 +30,6 @@ void* camera_thread(void* arg)
     set_fifo_prio(80);
     
     struct timespec frame_start, frame_end;
-    clock_gettime(CLOCK_MONOTONIC, &frame_start);
-    syslog(LOG_DEBUG, "start camera_thread: %ld sec %ld ns\n", frame_start.tv_sec, frame_start.tv_nsec);
 
     // Suppress libjpeg warnings about corrupt MJPEG data
     //by forcing all "STDERR" messages to the devnull file
@@ -73,6 +71,7 @@ void* camera_thread(void* arg)
     g_camera_ready = 1;
 
     while (!g_stop) {
+        clock_gettime(CLOCK_MONOTONIC, &frame_start);
         cap >> frame;
         if (frame.empty()) {
             if (++empty_count > 10) {
@@ -85,7 +84,7 @@ void* camera_thread(void* arg)
         empty_count = 0;
         camera_buffer.put(frame);
         clock_gettime(CLOCK_MONOTONIC, &frame_end);
-        syslog(LOG_DEBUG, "int camera_thread: %ld sec %ld ns\n", frame_end.tv_sec, frame_end.tv_nsec);
+        syslog(LOG_DEBUG, ",camera_thread,%.3f,ms", delta_t_ms(frame_start, frame_end));
     }
 
     cap.release();
