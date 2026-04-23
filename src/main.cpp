@@ -32,11 +32,11 @@ int main(int argc, char** argv)
 {
     bool headless = (argc > 1 && strcmp(argv[1], "--headless") == 0);
 
-    openlog("capture_v2", LOG_PID | LOG_NDELAY, LOG_USER);
+    openlog("capture_v6", LOG_PID | LOG_NDELAY, LOG_USER);
 
     mlockall(MCL_CURRENT | MCL_FUTURE);
     pin_to_core(0);
-    set_fifo_prio(80);
+    set_fifo_prio(60);
     signal(SIGINT, sigint_handler);
     hsv_init();
 
@@ -46,43 +46,29 @@ int main(int argc, char** argv)
     pthread_create(&t_seq, NULL, sequencer_thread, NULL);
     pthread_create(&t_lcd, NULL, lcd_thread, NULL);
 
-    //cv::Mat frame;
-    //unsigned long last_seq = 0;
 
     if (headless) {
         printf("Running in headless mode. Press Ctrl+C to quit.\n");
         fflush(stdout);
-        /*while (!g_stop) {
-            //lcd thread is running to get frames... don't want to do that here anymore
-            if (display_buffer.get(frame, last_seq, 100000000L)) {
-                last_seq++;
-            }
-            usleep(10000);
-        }*/
+        
     } else {
         printf("Running. Press r/g/b/y to change color, q to quit.\n");
         while (!g_stop) {
-            //lcd thread is running to get frames... don't want to do that here anymore
-            /*if (display_buffer.get(frame, last_seq, 100000000L)) {
-                last_seq++;
-                cv::imshow("Output", frame);
-            }*/
-
-            char c ; //= cv::waitKey(10);  This function only works if using cv::imshow
-            scanf("%1c",&c);
+            
+            int c = getchar();
             if (c == 'q' || c == 27) {
                 g_stop = 1;
                 break;
             }
-            if (c == 'r' || c == 'g' || c == 'b' || c == 'y') {
+            else if (c == 'r' || c == 'g' || c == 'b' || c == 'y') {
                 set_hsv_preset(c);
                 printf("Color: %c\n", c);
             }
             
-            //need to release this thread at some point
+            //no need to yield thread, occurs in getchar
             usleep(100000); //100ms
         }
-        //cv::destroyAllWindows();
+        
     }
 
     pthread_join(t_cam, NULL);
