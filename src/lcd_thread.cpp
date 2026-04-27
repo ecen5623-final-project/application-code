@@ -20,7 +20,7 @@
 #include <time.h> //for logging timestamps of WCET
 #include <syslog.h>
 
-#define TIMEOUT 75000000
+#define TIMEOUT 106250000
 
 // Waveshare headers
 extern "C" {
