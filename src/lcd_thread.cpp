@@ -20,7 +20,8 @@
 #include <time.h> //for logging timestamps of WCET
 #include <syslog.h>
 
-#define TIMEOUT 106250000
+// 106.25ms deadline - 73.3ms WCET SPI transfer time = 32.95ms max wait
+#define TIMEOUT 32950000
 
 // Waveshare headers
 extern "C" {
