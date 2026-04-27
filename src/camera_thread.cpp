@@ -53,10 +53,10 @@ void* camera_thread(void* arg)
     cap.set(CAP_PROP_FPS,          FPS);
     cap.set(CAP_PROP_BUFFERSIZE,   1);
 
-    // Manual exposure — OpenCV maps CAP_PROP_AUTO_EXPOSURE to the V4L2 menu:
-    //   1 = Manual Mode, 3 = Aperture Priority. Manual locks the exposure time
-    //   so the sensor can't stretch a frame interval past the FPS period.
-    // CAP_PROP_EXPOSURE is in 100-µs units on UVC; 50 => 5 ms.
+    // Next two lines set a manual exposure (1) with a 5ms exposure
+    // 100us * 50 = 5ms
+    // This is done to maintain realtime and avoid missed deadlines
+    // due to auto-exposure
     cap.set(CAP_PROP_AUTO_EXPOSURE, 1);
     cap.set(CAP_PROP_EXPOSURE,      50);
 

@@ -20,7 +20,7 @@ extern volatile sig_atomic_t g_camera_ready;
 extern CameraBuffer camera_buffer;
 extern DisplayBuffer display_buffer;
 
-#define T_NS 33333333L  // 30 fps period
+#define T_NS 62500000L  // 16 fps period (62.5ms)
 
 static sem_t sem_s1, sem_s2, sem_s3, sem_done;
 static Mat shared_frame_in;
